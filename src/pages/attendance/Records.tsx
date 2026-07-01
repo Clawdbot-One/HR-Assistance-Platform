@@ -1,4 +1,4 @@
-import { Search, Filter } from 'lucide-react'
+import { Search, Filter, Eye, X } from 'lucide-react'
 import { useState, useEffect } from 'react'
 
 interface AttendanceRecord {
@@ -15,6 +15,8 @@ export default function Records() {
   const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [loading, setLoading] = useState(true)
+  const [showModal, setShowModal] = useState(false)
+  const [currentRecord, setCurrentRecord] = useState<AttendanceRecord | null>(null)
 
   useEffect(() => {
     fetchRecords()
@@ -32,6 +34,11 @@ export default function Records() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const handleView = (record: AttendanceRecord) => {
+    setCurrentRecord(record)
+    setShowModal(true)
   }
 
   const filteredRecords = records.filter(r =>
@@ -116,6 +123,15 @@ export default function Records() {
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(record.status)}
                   </td>
+                  <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                    <button 
+                      onClick={() => handleView(record)}
+                      className="text-blue-600 hover:text-blue-900"
+                      title="查看详情"
+                    >
+                      <Eye className="w-4 h-4" />
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -128,6 +144,62 @@ export default function Records() {
           </div>
         </div>
       </div>
+
+      {showModal && currentRecord && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
+            <div className="flex items-center justify-between p-6 border-b border-slate-200">
+              <h3 className="text-lg font-semibold text-slate-800">考勤详情</h3>
+              <button
+                onClick={() => setShowModal(false)}
+                className="text-slate-400 hover:text-slate-600"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-slate-700">员工姓名</label>
+                  <p className="mt-1 text-slate-900">{currentRecord.employee_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">部门</label>
+                  <p className="mt-1 text-slate-900">{currentRecord.dept_name}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">日期</label>
+                  <p className="mt-1 text-slate-900">{currentRecord.date}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">状态</label>
+                  <div className="mt-1">
+                    {getStatusBadge(currentRecord.status)}
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">上班打卡</label>
+                  <p className="mt-1 text-slate-900">{currentRecord.check_in || '未打卡'}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-slate-700">下班打卡</label>
+                  <p className="mt-1 text-slate-900">{currentRecord.check_out || '未打卡'}</p>
+                </div>
+              </div>
+
+              <div className="pt-4 flex justify-end">
+                <button
+                  onClick={() => setShowModal(false)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  关闭
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
