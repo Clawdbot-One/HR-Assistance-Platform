@@ -27,9 +27,10 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
     
     // 查询用户
     const stmt = db.prepare(`
-      SELECT u.*, e.name as employee_name, e.dept_id, e.position_id
+      SELECT u.*, e.name as employee_name, e.dept_id, e.position_id, d.name as dept_name
       FROM user u
       LEFT JOIN employee e ON u.employee_id = e.id
+      LEFT JOIN department d ON e.dept_id = d.id
       WHERE u.username = ? AND u.password = ?
     `)
     stmt.bind([username, password])
@@ -62,6 +63,7 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
           employeeId: user.employee_id,
           employeeName: user.employee_name,
           deptId: user.dept_id,
+          deptName: user.dept_name,
           positionId: user.position_id
         }
       }

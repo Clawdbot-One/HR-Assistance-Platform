@@ -1,42 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Plus, Search, Eye, Edit, Trash2 } from 'lucide-react'
 
 interface Demand {
   id: string
-  deptName: string
-  positionName: string
+  dept_name: string
+  position_name: string
   headcount: number
   requirements: string
   status: string
-  createdAt: string
+  created_at: string
 }
 
 export default function Demands() {
-  const [demands] = useState<Demand[]>([
-    {
-      id: 'dem-001',
-      deptName: '技术部',
-      positionName: '前端工程师',
-      headcount: 3,
-      requirements: '本科及以上学历，3年以上前端开发经验',
-      status: 'pending',
-      createdAt: '2024-01-15'
-    },
-    {
-      id: 'dem-002',
-      deptName: '市场部',
-      positionName: '市场专员',
-      headcount: 2,
-      requirements: '大专及以上学历，市场营销相关专业',
-      status: 'approved',
-      createdAt: '2024-01-10'
-    }
-  ])
-
+  const [demands, setDemands] = useState<Demand[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchDemands()
+  }, [])
+
+  const fetchDemands = async () => {
+    try {
+      const response = await fetch('/api/recruitment/demands')
+      const data = await response.json()
+      if (data.success) {
+        setDemands(data.data)
+      }
+    } catch (error) {
+      console.error('获取招聘需求失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredDemands = demands.filter(d =>
-    d.positionName.includes(searchTerm) || d.deptName.includes(searchTerm)
+    d.position_name.includes(searchTerm) || d.dept_name.includes(searchTerm)
   )
 
   const getStatusBadge = (status: string) => {

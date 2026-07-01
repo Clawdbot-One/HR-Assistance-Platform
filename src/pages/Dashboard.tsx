@@ -1,11 +1,21 @@
 import { Users, UserPlus, Calendar, TrendingUp } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
 
 export default function Dashboard() {
+  const navigate = useNavigate()
+  
   const stats = [
     { label: '员工总数', value: '156', icon: Users, color: 'bg-blue-500' },
     { label: '本月入职', value: '8', icon: UserPlus, color: 'bg-green-500' },
     { label: '待审批', value: '12', icon: Calendar, color: 'bg-orange-500' },
     { label: '晋升中', value: '3', icon: TrendingUp, color: 'bg-purple-500' }
+  ]
+
+  const quickLinks = [
+    { label: '员工管理', desc: '查看和管理员工信息', path: '/personnel/employees', color: 'blue' },
+    { label: '招聘管理', desc: '发布职位和筛选简历', path: '/recruitment/demands', color: 'green' },
+    { label: '审批中心', desc: '处理待审批事项', path: '/workflow/approvals', color: 'orange' },
+    { label: '绩效考核', desc: '设置和查看考核结果', path: '/performance/schemes', color: 'purple' }
   ]
 
   return (
@@ -53,22 +63,16 @@ export default function Dashboard() {
         <div className="bg-white rounded-lg shadow-sm p-6">
           <h2 className="text-lg font-semibold text-slate-800 mb-4">快捷入口</h2>
           <div className="grid grid-cols-2 gap-4">
-            <button className="p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors text-left">
-              <p className="font-medium text-blue-900">员工管理</p>
-              <p className="text-sm text-blue-600 mt-1">查看和管理员工信息</p>
-            </button>
-            <button className="p-4 bg-green-50 hover:bg-green-100 rounded-lg transition-colors text-left">
-              <p className="font-medium text-green-900">招聘管理</p>
-              <p className="text-sm text-green-600 mt-1">发布职位和筛选简历</p>
-            </button>
-            <button className="p-4 bg-orange-50 hover:bg-orange-100 rounded-lg transition-colors text-left">
-              <p className="font-medium text-orange-900">审批中心</p>
-              <p className="text-sm text-orange-600 mt-1">处理待审批事项</p>
-            </button>
-            <button className="p-4 bg-purple-50 hover:bg-purple-100 rounded-lg transition-colors text-left">
-              <p className="font-medium text-purple-900">绩效考核</p>
-              <p className="text-sm text-purple-600 mt-1">设置和查看考核结果</p>
-            </button>
+            {quickLinks.map((link) => (
+              <button 
+                key={link.path}
+                onClick={() => navigate(link.path)}
+                className={`p-4 bg-${link.color}-50 hover:bg-${link.color}-100 rounded-lg transition-colors text-left`}
+              >
+                <p className={`font-medium text-${link.color}-900`}>{link.label}</p>
+                <p className={`text-sm text-${link.color}-600 mt-1`}>{link.desc}</p>
+              </button>
+            ))}
           </div>
         </div>
       </div>

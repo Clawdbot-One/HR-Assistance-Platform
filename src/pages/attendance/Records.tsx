@@ -1,42 +1,41 @@
 import { Search, Filter } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface AttendanceRecord {
   id: string
-  employeeName: string
-  deptName: string
+  employee_name: string
+  dept_name: string
   date: string
-  checkIn: string
-  checkOut: string
+  check_in: string
+  check_out: string
   status: string
 }
 
 export default function Records() {
-  const [records] = useState<AttendanceRecord[]>([
-    {
-      id: 'att-001',
-      employeeName: '张三',
-      deptName: '人事部',
-      date: '2024-01-15',
-      checkIn: '09:00',
-      checkOut: '18:00',
-      status: 'normal'
-    },
-    {
-      id: 'att-002',
-      employeeName: '李四',
-      deptName: '技术部',
-      date: '2024-01-15',
-      checkIn: '09:15',
-      checkOut: '18:30',
-      status: 'late'
-    }
-  ])
-
+  const [records, setRecords] = useState<AttendanceRecord[]>([])
   const [searchTerm, setSearchTerm] = useState('')
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchRecords()
+  }, [])
+
+  const fetchRecords = async () => {
+    try {
+      const response = await fetch('/api/attendance/records')
+      const data = await response.json()
+      if (data.success) {
+        setRecords(data.data)
+      }
+    } catch (error) {
+      console.error('获取考勤记录失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filteredRecords = records.filter(r =>
-    r.employeeName.includes(searchTerm) || r.deptName.includes(searchTerm)
+    r.employee_name.includes(searchTerm) || r.dept_name.includes(searchTerm)
   )
 
   const getStatusBadge = (status: string) => {
@@ -100,19 +99,19 @@ export default function Records() {
               {filteredRecords.map((record) => (
                 <tr key={record.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-slate-900">{record.employeeName}</div>
+                    <div className="text-sm font-medium text-slate-900">{record.employee_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{record.deptName}</div>
+                    <div className="text-sm text-slate-900">{record.dept_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <div className="text-sm text-slate-900">{record.date}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{record.checkIn}</div>
+                    <div className="text-sm text-slate-900">{record.check_in}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{record.checkOut}</div>
+                    <div className="text-sm text-slate-900">{record.check_out}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     {getStatusBadge(record.status)}

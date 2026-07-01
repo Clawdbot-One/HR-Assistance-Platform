@@ -1,28 +1,37 @@
 import { Plus, Eye, Edit, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface ResignationApplication {
   id: string
-  employeeName: string
-  deptName: string
-  resignDate: string
-  resignType: string
+  employee_name: string
+  dept_name: string
+  resign_date: string
+  resign_type: string
   reason: string
   status: string
 }
 
 export default function Applications() {
-  const [applications] = useState<ResignationApplication[]>([
-    {
-      id: 'res-001',
-      employeeName: '张三',
-      deptName: '人事部',
-      resignDate: '2024-02-15',
-      resignType: '主动离职',
-      reason: '个人发展原因',
-      status: 'pending'
+  const [applications, setApplications] = useState<ResignationApplication[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchApplications()
+  }, [])
+
+  const fetchApplications = async () => {
+    try {
+      const response = await fetch('/api/resignation/applications')
+      const data = await response.json()
+      if (data.success) {
+        setApplications(data.data)
+      }
+    } catch (error) {
+      console.error('获取离职申请失败:', error)
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
 
   const getStatusBadge = (status: string) => {
     const badges = {
@@ -75,16 +84,16 @@ export default function Applications() {
               {applications.map((app) => (
                 <tr key={app.id} className="hover:bg-slate-50">
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm font-medium text-slate-900">{app.employeeName}</div>
+                    <div className="text-sm font-medium text-slate-900">{app.employee_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{app.deptName}</div>
+                    <div className="text-sm text-slate-900">{app.dept_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{app.resignDate}</div>
+                    <div className="text-sm text-slate-900">{app.resign_date}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{app.resignType}</div>
+                    <div className="text-sm text-slate-900">{app.resign_type}</div>
                   </td>
                   <td className="px-6 py-4">
                     <div className="text-sm text-slate-500 max-w-xs truncate">{app.reason}</div>

@@ -12,6 +12,12 @@ import path from 'path'
 import dotenv from 'dotenv'
 import { fileURLToPath } from 'url'
 import authRoutes from './routes/auth.js'
+import employeeRoutes from './routes/employees.js'
+import departmentRoutes from './routes/departments.js'
+import recruitmentRoutes from './routes/recruitment.js'
+import attendanceRoutes from './routes/attendance.js'
+import workflowRoutes from './routes/workflow.js'
+import resignationRoutes from './routes/resignation.js'
 import { initDatabase } from './db.js'
 
 // for esm mode
@@ -39,6 +45,12 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }))
  * API Routes
  */
 app.use('/api/auth', authRoutes)
+app.use('/api/employees', employeeRoutes)
+app.use('/api/departments', departmentRoutes)
+app.use('/api/recruitment', recruitmentRoutes)
+app.use('/api/attendance', attendanceRoutes)
+app.use('/api/workflow', workflowRoutes)
+app.use('/api/resignation', resignationRoutes)
 
 /**
  * health

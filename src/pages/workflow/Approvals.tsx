@@ -1,51 +1,41 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { CheckCircle, XCircle, Clock, Eye } from 'lucide-react'
 
 interface ApprovalTask {
   id: string
   title: string
-  businessType: string
-  applicantName: string
-  deptName: string
+  business_type: string
+  applicant_name: string
+  dept_name: string
   status: string
-  createdAt: string
+  created_at: string
 }
 
 export default function Approvals() {
   const [activeTab, setActiveTab] = useState<'pending' | 'completed' | 'initiated'>('pending')
+  const [tasks, setTasks] = useState<ApprovalTask[]>([])
+  const [loading, setLoading] = useState(true)
 
-  const [tasks] = useState<ApprovalTask[]>([
-    {
-      id: 'task-001',
-      title: '请假申请 - 张三',
-      businessType: '请假',
-      applicantName: '张三',
-      deptName: '人事部',
-      status: 'pending',
-      createdAt: '2024-01-15 10:00'
-    },
-    {
-      id: 'task-002',
-      title: '招聘需求 - 前端工程师',
-      businessType: '招聘',
-      applicantName: '李四',
-      deptName: '技术部',
-      status: 'pending',
-      createdAt: '2024-01-14 15:30'
-    }
-  ])
+  useEffect(() => {
+    fetchTasks()
+  }, [])
 
-  const [completedTasks] = useState<ApprovalTask[]>([
-    {
-      id: 'task-003',
-      title: '加班申请 - 王五',
-      businessType: '加班',
-      applicantName: '王五',
-      deptName: '市场部',
-      status: 'approved',
-      createdAt: '2024-01-10 09:00'
+  const fetchTasks = async () => {
+    try {
+      const response = await fetch('/api/workflow/tasks')
+      const data = await response.json()
+      if (data.success) {
+        setTasks(data.data)
+      }
+    } catch (error) {
+      console.error('获取审批任务失败:', error)
+    } finally {
+      setLoading(false)
     }
-  ])
+  }
+
+  const pendingTasks = tasks.filter(task => task.status === 'pending')
+  const completedTasks = tasks.filter(task => task.status === 'approved' || task.status === 'rejected')
 
   const getStatusIcon = (status: string) => {
     if (status === 'pending') {

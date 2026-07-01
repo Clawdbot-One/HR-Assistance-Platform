@@ -1,5 +1,5 @@
 import { Building2, ChevronRight, ChevronDown, Plus, Edit, Trash2 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 
 interface Department {
   id: string
@@ -11,34 +11,27 @@ interface Department {
 }
 
 export default function Organization() {
-  const [departments] = useState<Department[]>([
-    {
-      id: 'dept-001',
-      name: '人事部',
-      parent_id: null,
-      leader_id: null,
-      headcount_quota: 20,
-      children: []
-    },
-    {
-      id: 'dept-002',
-      name: '技术部',
-      parent_id: null,
-      leader_id: null,
-      headcount_quota: 50,
-      children: []
-    },
-    {
-      id: 'dept-003',
-      name: '市场部',
-      parent_id: null,
-      leader_id: null,
-      headcount_quota: 30,
-      children: []
-    }
-  ])
-
+  const [departments, setDepartments] = useState<Department[]>([])
+  const [loading, setLoading] = useState(true)
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set(['org-001']))
+
+  useEffect(() => {
+    fetchDepartments()
+  }, [])
+
+  const fetchDepartments = async () => {
+    try {
+      const response = await fetch('/api/departments/tree')
+      const data = await response.json()
+      if (data.success) {
+        setDepartments(data.data)
+      }
+    } catch (error) {
+      console.error('获取部门列表失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const toggleNode = (id: string) => {
     const newExpanded = new Set(expandedNodes)

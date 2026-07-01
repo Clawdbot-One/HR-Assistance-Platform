@@ -1,59 +1,43 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Search, Plus, Edit, Trash2, Eye } from 'lucide-react'
 
 interface Employee {
   id: string
   name: string
-  idNumber: string
-  deptName: string
-  positionName: string
+  id_number: string
+  dept_name: string
+  position_name: string
   status: string
-  entryDate: string
+  entry_date: string
   phone: string
   email: string
 }
 
 export default function Employees() {
-  const [employees] = useState<Employee[]>([
-    {
-      id: 'emp-001',
-      name: '张三',
-      idNumber: '110101199001011234',
-      deptName: '人事部',
-      positionName: '人事经理',
-      status: 'active',
-      entryDate: '2020-01-01',
-      phone: '13800138000',
-      email: 'zhangsan@example.com'
-    },
-    {
-      id: 'emp-002',
-      name: '李四',
-      idNumber: '110101199201011234',
-      deptName: '技术部',
-      positionName: '技术总监',
-      status: 'active',
-      entryDate: '2019-03-15',
-      phone: '13800138001',
-      email: 'lisi@example.com'
-    },
-    {
-      id: 'emp-003',
-      name: '王五',
-      idNumber: '110101199301011234',
-      deptName: '市场部',
-      positionName: '市场经理',
-      status: 'active',
-      entryDate: '2021-06-01',
-      phone: '13800138002',
-      email: 'wangwu@example.com'
-    }
-  ])
-
+  const [employees, setEmployees] = useState<Employee[]>([])
+  const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
 
+  useEffect(() => {
+    fetchEmployees()
+  }, [])
+
+  const fetchEmployees = async () => {
+    try {
+      const response = await fetch('/api/employees')
+      const data = await response.json()
+      if (data.success) {
+        setEmployees(data.data)
+      }
+    } catch (error) {
+      console.error('获取员工列表失败:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const filteredEmployees = employees.filter(emp =>
-    emp.name.includes(searchTerm) || emp.idNumber.includes(searchTerm)
+    emp.name.includes(searchTerm) || emp.id_number.includes(searchTerm)
   )
 
   return (
@@ -104,13 +88,13 @@ export default function Employees() {
                     <div className="text-sm font-medium text-slate-900">{employee.name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-500">{employee.idNumber}</div>
+                    <div className="text-sm text-slate-500">{employee.id_number}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{employee.deptName}</div>
+                    <div className="text-sm text-slate-900">{employee.dept_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    <div className="text-sm text-slate-900">{employee.positionName}</div>
+                    <div className="text-sm text-slate-900">{employee.position_name}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
                     <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
@@ -118,7 +102,7 @@ export default function Employees() {
                     </span>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
-                    {employee.entryDate}
+                    {employee.entry_date}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-500">
                     <div>{employee.phone}</div>
