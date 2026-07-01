@@ -151,18 +151,188 @@ export async function initDatabase(): Promise<Database> {
     )
   `)
 
-  // 晋升记录表
+  // 晋升计划表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_plan (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      position_name TEXT NOT NULL,
+      target_position_id TEXT,
+      quota INTEGER NOT NULL DEFAULT 1,
+      requirements TEXT,
+      start_date DATE NOT NULL,
+      end_date DATE NOT NULL,
+      status TEXT DEFAULT 'draft',
+      created_by TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (target_position_id) REFERENCES position(id),
+      FOREIGN KEY (created_by) REFERENCES employee(id)
+    )
+  `)
+
+  // 晋升申请表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_application (
+      id TEXT PRIMARY KEY,
+      plan_id TEXT NOT NULL,
+      employee_id TEXT NOT NULL,
+      current_position_id TEXT NOT NULL,
+      target_position_id TEXT NOT NULL,
+      apply_reason TEXT,
+      work_summary TEXT,
+      achievements TEXT,
+      status TEXT DEFAULT 'submitted',
+      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (plan_id) REFERENCES promotion_plan(id),
+      FOREIGN KEY (employee_id) REFERENCES employee(id),
+      FOREIGN KEY (current_position_id) REFERENCES position(id),
+      FOREIGN KEY (target_position_id) REFERENCES position(id)
+    )
+  `)
+
+  // 资格审查表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_qualification_review (
+      id TEXT PRIMARY KEY,
+      application_id TEXT NOT NULL,
+      reviewer_id TEXT NOT NULL,
+      review_date DATE NOT NULL,
+      work_years_check INTEGER DEFAULT 0,
+      performance_check INTEGER DEFAULT 0,
+      education_check INTEGER DEFAULT 0,
+      discipline_check INTEGER DEFAULT 0,
+      qualification_score INTEGER,
+      review_comment TEXT,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (application_id) REFERENCES promotion_application(id),
+      FOREIGN KEY (reviewer_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 民主评议表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_democratic_review (
+      id TEXT PRIMARY KEY,
+      application_id TEXT NOT NULL,
+      reviewer_id TEXT NOT NULL,
+      review_type TEXT NOT NULL,
+      virtue_score INTEGER,
+      ability_score INTEGER,
+      diligence_score INTEGER,
+      performance_score INTEGER,
+      integrity_score INTEGER,
+      total_score INTEGER,
+      review_comment TEXT,
+      review_date DATE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (application_id) REFERENCES promotion_application(id),
+      FOREIGN KEY (reviewer_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 评审委员会表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_committee (
+      id TEXT PRIMARY KEY,
+      name TEXT NOT NULL,
+      plan_id TEXT,
+      chairperson_id TEXT,
+      member_count INTEGER DEFAULT 0,
+      meeting_date DATE,
+      status TEXT DEFAULT 'pending',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (plan_id) REFERENCES promotion_plan(id),
+      FOREIGN KEY (chairperson_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 评审委员会委员表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_committee_member (
+      id TEXT PRIMARY KEY,
+      committee_id TEXT NOT NULL,
+      employee_id TEXT NOT NULL,
+      role TEXT DEFAULT 'member',
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (committee_id) REFERENCES promotion_committee(id),
+      FOREIGN KEY (employee_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 评审委员会评审记录表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_committee_review (
+      id TEXT PRIMARY KEY,
+      committee_id TEXT NOT NULL,
+      application_id TEXT NOT NULL,
+      member_id TEXT NOT NULL,
+      vote_type TEXT NOT NULL,
+      vote_comment TEXT,
+      vote_date DATE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (committee_id) REFERENCES promotion_committee(id),
+      FOREIGN KEY (application_id) REFERENCES promotion_application(id),
+      FOREIGN KEY (member_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 晋升公示表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_publicity (
+      id TEXT PRIMARY KEY,
+      application_id TEXT NOT NULL,
+      publicity_start_date DATE NOT NULL,
+      publicity_end_date DATE NOT NULL,
+      publicity_channel TEXT,
+      status TEXT DEFAULT 'pending',
+      objection_count INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (application_id) REFERENCES promotion_application(id)
+    )
+  `)
+
+  // 晋升公示异议表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS promotion_publicity_objection (
+      id TEXT PRIMARY KEY,
+      publicity_id TEXT NOT NULL,
+      objector_name TEXT NOT NULL,
+      objector_contact TEXT,
+      objection_content TEXT NOT NULL,
+      objection_date DATE NOT NULL,
+      investigation_result TEXT,
+      handling_status TEXT DEFAULT 'pending',
+      handler_id TEXT,
+      handle_date DATE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (publicity_id) REFERENCES promotion_publicity(id),
+      FOREIGN KEY (handler_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 晋升记录表（增强版）
   db.run(`
     CREATE TABLE IF NOT EXISTS promotion_record (
       id TEXT PRIMARY KEY,
+      application_id TEXT NOT NULL,
       employee_id TEXT NOT NULL,
       from_position_id TEXT,
       to_position_id TEXT,
       promotion_date DATE,
+      probation_period INTEGER DEFAULT 0,
+      probation_end_date DATE,
       status TEXT DEFAULT 'pending',
+      approved_by TEXT,
+      approved_at DATETIME,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-      FOREIGN KEY (employee_id) REFERENCES employee(id)
+      FOREIGN KEY (application_id) REFERENCES promotion_application(id),
+      FOREIGN KEY (employee_id) REFERENCES employee(id),
+      FOREIGN KEY (approved_by) REFERENCES employee(id)
     )
   `)
 
@@ -298,6 +468,23 @@ export async function initDatabase(): Promise<Database> {
   db.run(`CREATE INDEX IF NOT EXISTS idx_approval_applicant ON approval_task(applicant_id)`)
   db.run(`CREATE INDEX IF NOT EXISTS idx_approval_approver ON approval_task(approver_id)`)
   db.run(`CREATE INDEX IF NOT EXISTS idx_approval_status ON approval_task(status)`)
+  
+  // 晋升工作流索引
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_plan_status ON promotion_plan(status)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_plan_date ON promotion_plan(start_date, end_date)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_application_plan ON promotion_application(plan_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_application_employee ON promotion_application(employee_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_application_status ON promotion_application(status)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_qual_review ON promotion_qualification_review(application_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_democratic_review ON promotion_democratic_review(application_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_committee_plan ON promotion_committee(plan_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_committee_member ON promotion_committee_member(committee_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_committee_review ON promotion_committee_review(application_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_publicity_application ON promotion_publicity(application_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_publicity_status ON promotion_publicity(status)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_objection_publicity ON promotion_publicity_objection(publicity_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_record_application ON promotion_record(application_id)`)
+  db.run(`CREATE INDEX IF NOT EXISTS idx_promotion_record_employee ON promotion_record(employee_id)`)
 
   // 插入初始数据
   const orgCount = db.exec('SELECT COUNT(*) as count FROM organization')[0]

@@ -18,6 +18,7 @@ import recruitmentRoutes from './routes/recruitment.js'
 import attendanceRoutes from './routes/attendance.js'
 import workflowRoutes from './routes/workflow.js'
 import resignationRoutes from './routes/resignation.js'
+import promotionRoutes from './routes/promotion.js'
 import { initDatabase } from './db.js'
 
 // for esm mode
@@ -51,6 +52,7 @@ app.use('/api/recruitment', recruitmentRoutes)
 app.use('/api/attendance', attendanceRoutes)
 app.use('/api/workflow', workflowRoutes)
 app.use('/api/resignation', resignationRoutes)
+app.use('/api/promotion', promotionRoutes)
 
 /**
  * health

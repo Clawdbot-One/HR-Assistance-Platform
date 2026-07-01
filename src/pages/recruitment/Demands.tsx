@@ -3,6 +3,7 @@ import { Plus, Search, Eye, Edit, Trash2, X } from 'lucide-react'
 
 interface Demand {
   id: string
+  dept_id?: string
   dept_name: string
   position_name: string
   headcount: number

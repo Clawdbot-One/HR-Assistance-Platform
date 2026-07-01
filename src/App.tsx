@@ -7,6 +7,11 @@ import Employees from './pages/personnel/Employees'
 import Organization from './pages/personnel/Organization'
 import RecruitmentDemands from './pages/recruitment/Demands'
 import PromotionPlans from './pages/promotion/Plans'
+import PromotionApplications from './pages/promotion/Applications'
+import QualificationReview from './pages/promotion/QualificationReview'
+import DemocraticReview from './pages/promotion/DemocraticReview'
+import CommitteeReview from './pages/promotion/CommitteeReview'
+import Publicity from './pages/promotion/Publicity'
 import CadrePlans from './pages/cadre/Plans'
 import PerformanceSchemes from './pages/performance/Schemes'
 import AttendanceRecords from './pages/attendance/Records'
@@ -37,6 +42,11 @@ export default function App() {
           <Route path="personnel/organization" element={<Organization />} />
           <Route path="recruitment/demands" element={<RecruitmentDemands />} />
           <Route path="promotion/plans" element={<PromotionPlans />} />
+          <Route path="promotion/applications" element={<PromotionApplications />} />
+          <Route path="promotion/qualification-review" element={<QualificationReview />} />
+          <Route path="promotion/democratic-review" element={<DemocraticReview />} />
+          <Route path="promotion/committee-review" element={<CommitteeReview />} />
+          <Route path="promotion/publicity" element={<Publicity />} />
           <Route path="cadre/plans" element={<CadrePlans />} />
           <Route path="performance/schemes" element={<PerformanceSchemes />} />
           <Route path="attendance/records" element={<AttendanceRecords />} />

@@ -5,6 +5,8 @@ interface Employee {
   id: string
   name: string
   id_number: string
+  dept_id?: string
+  position_id?: string
   dept_name: string
   position_name: string
   status: string
