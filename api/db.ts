@@ -352,6 +352,161 @@ export async function initDatabase(): Promise<Database> {
     )
   `)
 
+  // 干部评审方案表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_review_plan (
+      id TEXT PRIMARY KEY,
+      title TEXT NOT NULL,
+      review_period TEXT NOT NULL,
+      review_scope TEXT NOT NULL,
+      review_dimensions TEXT NOT NULL,
+      start_date DATE NOT NULL,
+      end_date DATE NOT NULL,
+      status TEXT DEFAULT 'draft',
+      created_by TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (created_by) REFERENCES employee(id)
+    )
+  `)
+
+  // 干部评审对象表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_review_target (
+      id TEXT PRIMARY KEY,
+      plan_id TEXT NOT NULL,
+      employee_id TEXT NOT NULL,
+      current_position TEXT,
+      review_status TEXT DEFAULT 'pending',
+      self_evaluation_score INTEGER,
+      democratic_score INTEGER,
+      organizational_score INTEGER,
+      comprehensive_score INTEGER,
+      final_rating TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      updated_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (plan_id) REFERENCES cadre_review_plan(id),
+      FOREIGN KEY (employee_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 干部自我评价表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_self_evaluation (
+      id TEXT PRIMARY KEY,
+      target_id TEXT NOT NULL,
+      virtue_summary TEXT,
+      ability_summary TEXT,
+      diligence_summary TEXT,
+      performance_summary TEXT,
+      integrity_summary TEXT,
+      achievements TEXT,
+      shortcomings TEXT,
+      improvement_plan TEXT,
+      submitted_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (target_id) REFERENCES cadre_review_target(id)
+    )
+  `)
+
+  // 干部民主测评表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_democratic_evaluation (
+      id TEXT PRIMARY KEY,
+      target_id TEXT NOT NULL,
+      evaluator_id TEXT NOT NULL,
+      evaluation_type TEXT NOT NULL,
+      virtue_score INTEGER,
+      ability_score INTEGER,
+      diligence_score INTEGER,
+      performance_score INTEGER,
+      integrity_score INTEGER,
+      total_score INTEGER,
+      evaluation_comment TEXT,
+      evaluation_date DATE NOT NULL,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (target_id) REFERENCES cadre_review_target(id),
+      FOREIGN KEY (evaluator_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 干部组织考察表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_organizational_evaluation (
+      id TEXT PRIMARY KEY,
+      target_id TEXT NOT NULL,
+      investigator_id TEXT NOT NULL,
+      investigation_date DATE NOT NULL,
+      virtue_performance TEXT,
+      ability_performance TEXT,
+      diligence_performance TEXT,
+      performance_performance TEXT,
+      integrity_performance TEXT,
+      major_achievements TEXT,
+      existing_problems TEXT,
+      investigation_score INTEGER,
+      investigation_comment TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (target_id) REFERENCES cadre_review_target(id),
+      FOREIGN KEY (investigator_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 干部综合评价表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_comprehensive_evaluation (
+      id TEXT PRIMARY KEY,
+      target_id TEXT NOT NULL,
+      evaluator_id TEXT NOT NULL,
+      evaluation_date DATE NOT NULL,
+      self_eval_weight INTEGER DEFAULT 10,
+      democratic_eval_weight INTEGER DEFAULT 40,
+      organizational_eval_weight INTEGER DEFAULT 50,
+      final_score INTEGER,
+      final_rating TEXT,
+      evaluation_conclusion TEXT,
+      recommendation TEXT,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (target_id) REFERENCES cadre_review_target(id),
+      FOREIGN KEY (evaluator_id) REFERENCES employee(id)
+    )
+  `)
+
+  // 干部评审公示表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_review_publicity (
+      id TEXT PRIMARY KEY,
+      plan_id TEXT NOT NULL,
+      publicity_start_date DATE NOT NULL,
+      publicity_end_date DATE NOT NULL,
+      publicity_channel TEXT,
+      status TEXT DEFAULT 'pending',
+      objection_count INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (plan_id) REFERENCES cadre_review_plan(id)
+    )
+  `)
+
+  // 干部评审公示异议表
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cadre_review_publicity_objection (
+      id TEXT PRIMARY KEY,
+      publicity_id TEXT NOT NULL,
+      target_id TEXT,
+      objector_name TEXT NOT NULL,
+      objector_contact TEXT,
+      objection_content TEXT NOT NULL,
+      objection_date DATE NOT NULL,
+      investigation_result TEXT,
+      handling_status TEXT DEFAULT 'pending',
+      handler_id TEXT,
+      handle_date DATE,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (publicity_id) REFERENCES cadre_review_publicity(id),
+      FOREIGN KEY (target_id) REFERENCES cadre_review_target(id),
+      FOREIGN KEY (handler_id) REFERENCES employee(id)
+    )
+  `)
+
   // 绩效考核表
   db.run(`
     CREATE TABLE IF NOT EXISTS performance (
