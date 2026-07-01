@@ -21,10 +21,15 @@ const __dirname = path.dirname(__filename)
 // load env
 dotenv.config()
 
-// 初始化数据库
-initDatabase()
-
 const app: express.Application = express()
+
+// 异步初始化数据库
+initDatabase().then(() => {
+  console.log('数据库初始化成功')
+}).catch((err) => {
+  console.error('数据库初始化失败:', err)
+  process.exit(1)
+})
 
 app.use(cors())
 app.use(express.json({ limit: '10mb' }))

@@ -2,7 +2,7 @@
  * 用户认证 API 路由
  */
 import { Router, type Request, type Response } from 'express'
-import db from '../db.js'
+import { getDatabase } from '../db.js'
 import { v4 as uuidv4 } from 'uuid'
 
 const router = Router()
@@ -23,13 +23,22 @@ router.post('/login', async (req: Request, res: Response): Promise<void> => {
       return
     }
 
+    const db = getDatabase()
+    
     // 查询用户
-    const user = db.prepare(`
+    const stmt = db.prepare(`
       SELECT u.*, e.name as employee_name, e.dept_id, e.position_id
       FROM user u
       LEFT JOIN employee e ON u.employee_id = e.id
       WHERE u.username = ? AND u.password = ?
-    `).get(username, password) as any
+    `)
+    stmt.bind([username, password])
+    
+    let user = null
+    if (stmt.step()) {
+      user = stmt.getAsObject()
+    }
+    stmt.free()
 
     if (!user) {
       res.status(401).json({
@@ -105,13 +114,21 @@ router.get('/me', async (req: Request, res: Response): Promise<void> => {
     const token = authHeader.substring(7)
     const userId = Buffer.from(token, 'base64').toString('utf-8').split(':')[0]
 
-    const user = db.prepare(`
+    const db = getDatabase()
+    const stmt = db.prepare(`
       SELECT u.*, e.name as employee_name, e.dept_id, e.position_id, d.name as dept_name
       FROM user u
       LEFT JOIN employee e ON u.employee_id = e.id
       LEFT JOIN department d ON e.dept_id = d.id
       WHERE u.id = ?
-    `).get(userId) as any
+    `)
+    stmt.bind([userId])
+    
+    let user = null
+    if (stmt.step()) {
+      user = stmt.getAsObject()
+    }
+    stmt.free()
 
     if (!user) {
       res.status(404).json({
